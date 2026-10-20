@@ -43,11 +43,28 @@ export async function getConversationLogs(params: {
   p: number
   page_size: number
   keyword?: string
-  user_id?: string
+  user_id?: number
 }) {
   const res = await api.get('/api/log/conversations', { params })
   if (!res.data?.success) {
     throw new Error(res.data?.message || 'request failed')
   }
   return res.data.data as ConversationLogPage
+}
+
+export type ConversationLogUser = {
+  user_id: number
+  username: string
+  count: number
+  last_at: number
+}
+
+export async function getConversationLogUsers(username: string) {
+  const res = await api.get('/api/log/conversations/users', {
+    params: { username },
+  })
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || 'request failed')
+  }
+  return (res.data.data ?? []) as ConversationLogUser[]
 }

@@ -7345,6 +7345,11 @@
     "A bat and a ball cost 1.10 in total. The bat costs 1.00 more than the ball. How much does the ball cost? Explain briefly.": "球拍和球一共 1.10 元，球拍比球贵 1.00 元。球多少钱？请简要说明。",
     "If all bloops are razzies and all razzies are lazzies, are all bloops definitely lazzies? Explain briefly.": "如果所有的 A 都是 B，所有的 B 都是 C，那么所有的 A 一定是 C 吗？请简要说明。",
     "Which is larger, 9.11 or 9.9? Explain briefly.": "9.11 和 9.9 哪个大？请简要说明。",
-    "A farmer has 17 sheep. All but 9 run away. How many sheep are left?": "农夫有 17 只羊，除了 9 只以外都跑了，还剩几只？"
+    "A farmer has 17 sheep. All but 9 run away. How many sheep are left?": "农夫有 17 只羊，除了 9 只以外都跑了，还剩几只？",
+    "Accounts": "账号",
+    "Search account": "搜索账号",
+    "All accounts": "全部账号",
+    "No matching accounts": "没有找到这个账号的记录",
+    "Reply": "回答"
   }
 }

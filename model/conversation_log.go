@@ -30,10 +30,13 @@ func CreateConversationLog(l *ConversationLog) error {
 	return LOG_DB.Create(l).Error
 }
 
-func ListConversationLogs(userId int, modelName string, keyword string, start, num int) ([]*ConversationLog, int64, error) {
+func ListConversationLogs(userId int, username string, modelName string, keyword string, start, num int) ([]*ConversationLog, int64, error) {
 	tx := LOG_DB.Model(&ConversationLog{})
 	if userId > 0 {
 		tx = tx.Where("user_id = ?", userId)
+	}
+	if username != "" {
+		tx = tx.Where("LOWER(username) LIKE LOWER(?)", "%"+username+"%")
 	}
 	if modelName != "" {
 		tx = tx.Where("model_name = ?", modelName)
@@ -49,6 +52,28 @@ func ListConversationLogs(userId int, modelName string, keyword string, start, n
 	var items []*ConversationLog
 	err := tx.Order("id desc").Limit(num).Offset(start).Find(&items).Error
 	return items, total, err
+}
+
+// ConversationLogUser is one account's entry in the per-account summary.
+type ConversationLogUser struct {
+	UserId   int    `json:"user_id"`
+	Username string `json:"username"`
+	Count    int64  `json:"count"`
+	LastAt   int64  `json:"last_at"`
+}
+
+// ListConversationLogUsers groups saved conversations by account, most recent
+// first, optionally narrowed by a username search.
+func ListConversationLogUsers(username string) ([]ConversationLogUser, error) {
+	tx := LOG_DB.Model(&ConversationLog{}).
+		Select("user_id, MAX(username) AS username, COUNT(*) AS count, MAX(created_at) AS last_at").
+		Group("user_id")
+	if username != "" {
+		tx = tx.Where("LOWER(username) LIKE LOWER(?)", "%"+username+"%")
+	}
+	var users []ConversationLogUser
+	err := tx.Order("last_at desc").Limit(500).Scan(&users).Error
+	return users, err
 }
 
 // DeleteConversationLogsBefore removes rows older than the timestamp.

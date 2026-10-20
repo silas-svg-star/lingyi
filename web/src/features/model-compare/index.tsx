@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query'
+import { Clock, Loader2, Play, Sparkles } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -17,8 +19,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Clock, Loader2, Play, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { SectionPageLayout } from '@/components/layout'
@@ -51,8 +51,8 @@ type CompareResult = {
 
 function errorMessage(error: unknown): string {
   const data = (error as { response?: { data?: unknown } })?.response?.data
-  const apiError = (data as { error?: { message?: string } } | undefined)
-    ?.error?.message
+  const apiError = (data as { error?: { message?: string } } | undefined)?.error
+    ?.message
   if (apiError) return apiError
   return error instanceof Error ? error.message : String(error)
 }

@@ -11,7 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const conversationLogMaxBytes = 64 * 1024
+// Large enough to keep whole agent-style requests, which resend the full
+// context on every call; anything beyond this is cut to bound storage.
+const conversationLogMaxBytes = 8 * 1024 * 1024
 
 type conversationLogWriter struct {
 	gin.ResponseWriter
@@ -53,7 +55,7 @@ func ConversationLog() gin.HandlerFunc {
 			return
 		}
 		var reqBody string
-		if storage, err := common.GetBodyStorage(c); err == nil && storage != nil && !storage.IsDisk() {
+		if storage, err := common.GetBodyStorage(c); err == nil && storage != nil {
 			if data, err := storage.Bytes(); err == nil {
 				reqBody = truncateUTF8(data, conversationLogMaxBytes)
 			}

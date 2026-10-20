@@ -74,7 +74,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           aria-hidden='true'
           className='pointer-events-none absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-white/10 blur-3xl'
         />
-        <div className='relative [&_h1]:text-primary-foreground'>{brand}</div>
+        <div className='[&_h1]:text-primary-foreground relative'>{brand}</div>
         <div className='relative space-y-6'>
           <h2 className='text-4xl leading-tight font-bold tracking-tight'>
             {t('One API, all mainstream models')}

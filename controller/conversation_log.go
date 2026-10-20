@@ -13,7 +13,7 @@ import (
 func GetConversationLogs(c *gin.Context) {
 	pageInfo := common.GetPageQuery(c)
 	userId, _ := strconv.Atoi(c.Query("user_id"))
-	items, total, err := model.ListConversationLogs(userId, c.Query("model_name"), c.Query("keyword"), pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+	items, total, err := model.ListConversationLogs(userId, c.Query("username"), c.Query("model_name"), c.Query("keyword"), pageInfo.GetStartIdx(), pageInfo.GetPageSize())
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -21,6 +21,16 @@ func GetConversationLogs(c *gin.Context) {
 	pageInfo.SetTotal(int(total))
 	pageInfo.SetItems(items)
 	common.ApiSuccess(c, pageInfo)
+}
+
+// GetConversationLogUsers lists accounts that have saved conversations (admin only).
+func GetConversationLogUsers(c *gin.Context) {
+	users, err := model.ListConversationLogUsers(c.Query("username"))
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, users)
 }
 
 // StartConversationLogCleanup purges rows older than the retention window.

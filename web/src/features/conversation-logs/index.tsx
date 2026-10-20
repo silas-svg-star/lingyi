@@ -28,12 +28,76 @@ import { Switch } from '@/components/ui/switch'
 import { useSystemOptions } from '@/features/system-settings/hooks/use-system-options'
 import { useUpdateOption } from '@/features/system-settings/hooks/use-update-option'
 
-import { getConversationLogs, type ConversationLog } from './api'
+import {
+  getConversationLogs,
+  getConversationLogUsers,
+  type ConversationLog,
+} from './api'
 
 const PAGE_SIZE = 20
 
+// Text of the last user message in an OpenAI/Claude style request body, used
+// as a one-line preview. Falls back to empty when the body is not JSON.
+function lastUserText(request: string): string {
+  try {
+    const body = JSON.parse(request) as {
+      messages?: Array<{ role?: string; content?: unknown }>
+      input?: unknown
+    }
+    const messages = Array.isArray(body.messages) ? body.messages : []
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i]?.role !== 'user') continue
+      const content = messages[i].content
+      if (typeof content === 'string') return content
+      if (Array.isArray(content)) {
+        return content
+          .map((part: { text?: string }) => part?.text ?? '')
+          .join(' ')
+      }
+    }
+    return typeof body.input === 'string' ? body.input : ''
+  } catch {
+    return ''
+  }
+}
+
+// Assistant text from a JSON or SSE (stream) chat/responses reply body.
+function replyText(response: string): string {
+  const fromObject = (o: Record<string, any>): string => {
+    const choice = o?.choices?.[0]
+    if (choice) return choice.message?.content ?? choice.delta?.content ?? ''
+    if (Array.isArray(o?.content)) {
+      return o.content.map((p: { text?: string }) => p?.text ?? '').join('')
+    }
+    if (typeof o?.output_text === 'string') return o.output_text
+    return ''
+  }
+  try {
+    return fromObject(JSON.parse(response))
+  } catch {
+    // Streamed reply: concatenate the text deltas of each data line.
+    return response
+      .split('\n')
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => {
+        try {
+          const o = JSON.parse(line.slice(5).trim())
+          if (o?.type === 'response.output_text.delta') return o.delta ?? ''
+          if (o?.type === 'content_block_delta') return o.delta?.text ?? ''
+          return o?.type ? '' : fromObject(o)
+        } catch {
+          return ''
+        }
+      })
+      .join('')
+  }
+}
+
 function Entry({ item }: { item: ConversationLog }) {
   const { t } = useTranslation()
+  const question = lastUserText(item.request)
+  const preview = question.slice(0, 200)
+  const answer = replyText(item.response)
   return (
     <details className='rounded-lg border p-3'>
       <summary className='flex cursor-pointer flex-wrap items-center gap-2 text-sm'>
@@ -43,8 +107,33 @@ function Entry({ item }: { item: ConversationLog }) {
         <Badge variant='outline'>{item.username || `#${item.user_id}`}</Badge>
         <Badge variant='secondary'>{item.model_name || item.path}</Badge>
         <span className='text-muted-foreground'>HTTP {item.status_code}</span>
+        {preview && (
+          <span className='text-foreground/80 w-full truncate text-xs'>
+            {preview}
+          </span>
+        )}
       </summary>
       <div className='mt-3 space-y-3'>
+        {(question || answer) && (
+          <div className='grid gap-2 md:grid-cols-2'>
+            <div className='rounded border p-2'>
+              <div className='text-muted-foreground mb-1 text-xs'>
+                {t('Question')}
+              </div>
+              <div className='max-h-60 overflow-auto text-sm whitespace-pre-wrap'>
+                {question}
+              </div>
+            </div>
+            <div className='rounded border p-2'>
+              <div className='text-muted-foreground mb-1 text-xs'>
+                {t('Reply')}
+              </div>
+              <div className='max-h-60 overflow-auto text-sm whitespace-pre-wrap'>
+                {answer}
+              </div>
+            </div>
+          </div>
+        )}
         <div>
           <div className='text-muted-foreground mb-1 text-xs'>
             {t('Request')}
@@ -66,11 +155,37 @@ function Entry({ item }: { item: ConversationLog }) {
   )
 }
 
+function AccountButton(props: {
+  active: boolean
+  label: string
+  count?: number
+  onClick: () => void
+}) {
+  return (
+    <button
+      type='button'
+      onClick={props.onClick}
+      className={
+        'flex shrink-0 items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm ' +
+        (props.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')
+      }
+    >
+      <span className='truncate'>{props.label}</span>
+      {props.count !== undefined && (
+        <span className='text-xs opacity-70'>{props.count}</span>
+      )}
+    </button>
+  )
+}
+
 export function ConversationLogs() {
   const { t } = useTranslation()
   const [page, setPage] = useState(1)
   const [keywordInput, setKeywordInput] = useState('')
   const [keyword, setKeyword] = useState('')
+  const [accountInput, setAccountInput] = useState('')
+  const [account, setAccount] = useState('')
+  const [userId, setUserId] = useState(0)
   const options = useSystemOptions()
   const updateOption = useUpdateOption()
   const enabled =
@@ -78,10 +193,23 @@ export function ConversationLogs() {
       ?.value === 'true'
 
   const logs = useQuery({
-    queryKey: ['conversation-logs', page, keyword],
+    queryKey: ['conversation-logs', page, keyword, userId],
     queryFn: () =>
-      getConversationLogs({ p: page, page_size: PAGE_SIZE, keyword }),
+      getConversationLogs({
+        p: page,
+        page_size: PAGE_SIZE,
+        keyword,
+        user_id: userId || undefined,
+      }),
   })
+  const users = useQuery({
+    queryKey: ['conversation-log-users', account],
+    queryFn: () => getConversationLogUsers(account),
+  })
+  const selectUser = (id: number) => {
+    setUserId(id)
+    setPage(1)
+  }
   const total = logs.data?.total ?? 0
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -115,52 +243,97 @@ export function ConversationLogs() {
             />
           </div>
 
-          <form
-            className='flex gap-2'
-            onSubmit={(e) => {
-              e.preventDefault()
-              setPage(1)
-              setKeyword(keywordInput.trim())
-            }}
-          >
-            <Input
-              value={keywordInput}
-              onChange={(e) => setKeywordInput(e.target.value)}
-              placeholder={t('Search conversation content')}
-            />
-            <Button type='submit'>{t('Search')}</Button>
-          </form>
-
-          <div className='space-y-2'>
-            {logs.data?.items?.map((item) => (
-              <Entry key={item.id} item={item} />
-            ))}
-            {logs.data && logs.data.items?.length === 0 && (
-              <div className='text-muted-foreground py-8 text-center text-sm'>
-                {t('No conversations saved')}
+          <div className='grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]'>
+            <aside className='space-y-2 rounded-lg border p-3'>
+              <div className='text-sm font-medium'>{t('Accounts')}</div>
+              <form
+                className='flex gap-2'
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  setAccount(accountInput.trim())
+                }}
+              >
+                <Input
+                  value={accountInput}
+                  onChange={(e) => setAccountInput(e.target.value)}
+                  placeholder={t('Search account')}
+                />
+                <Button type='submit' variant='outline'>
+                  {t('Search')}
+                </Button>
+              </form>
+              <div className='flex max-h-[60vh] gap-1 overflow-auto max-lg:pb-1 lg:flex-col'>
+                <AccountButton
+                  active={userId === 0}
+                  label={t('All accounts')}
+                  onClick={() => selectUser(0)}
+                />
+                {users.data?.map((u) => (
+                  <AccountButton
+                    key={u.user_id}
+                    active={userId === u.user_id}
+                    label={u.username || `#${u.user_id}`}
+                    count={u.count}
+                    onClick={() => selectUser(u.user_id)}
+                  />
+                ))}
+                {users.data && users.data.length === 0 && (
+                  <div className='text-muted-foreground px-2 py-4 text-xs'>
+                    {t('No matching accounts')}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </aside>
 
-          <div className='flex items-center justify-between text-sm'>
-            <span className='text-muted-foreground'>
-              {page} / {pages} ({total})
-            </span>
-            <div className='flex gap-2'>
-              <Button
-                variant='outline'
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
+            <div className='min-w-0 space-y-4'>
+              <form
+                className='flex gap-2'
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  setPage(1)
+                  setKeyword(keywordInput.trim())
+                }}
               >
-                {t('Previous')}
-              </Button>
-              <Button
-                variant='outline'
-                disabled={page >= pages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                {t('Next')}
-              </Button>
+                <Input
+                  value={keywordInput}
+                  onChange={(e) => setKeywordInput(e.target.value)}
+                  placeholder={t('Search conversation content')}
+                />
+                <Button type='submit'>{t('Search')}</Button>
+              </form>
+
+              <div className='space-y-2'>
+                {logs.data?.items?.map((item) => (
+                  <Entry key={item.id} item={item} />
+                ))}
+                {logs.data && logs.data.items?.length === 0 && (
+                  <div className='text-muted-foreground py-8 text-center text-sm'>
+                    {t('No conversations saved')}
+                  </div>
+                )}
+              </div>
+
+              <div className='flex items-center justify-between text-sm'>
+                <span className='text-muted-foreground'>
+                  {page} / {pages} ({total})
+                </span>
+                <div className='flex gap-2'>
+                  <Button
+                    variant='outline'
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    {t('Previous')}
+                  </Button>
+                  <Button
+                    variant='outline'
+                    disabled={page >= pages}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    {t('Next')}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
