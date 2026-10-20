@@ -62,10 +62,12 @@ mapped_to = set(mapping.values())
 
 opts = {o["key"]: o["value"] for o in call("GET", "/api/option/")["data"]}
 priced = set(json.loads(opts.get("ModelRatio") or "{}")) | set(json.loads(opts.get("ModelPrice") or "{}"))
-# Leave out duplicates of a real model: "~vendor/model-latest" aliases and
-# variants such as "model:batch", ":free", ":thinking", ":extended".
+# Leave out duplicates of a real model: "~vendor/model-latest" aliases,
+# variants such as "model:batch", ":free", ":thinking", ":extended", and
+# DeepSeek, which the site serves from its own direct DeepSeek channel.
 def duplicate(x):
-    return x.startswith("~") or ":" in x
+    target = mapping.get(x, x)
+    return x.startswith("~") or ":" in x or target.startswith("deepseek/")
 aliases = [x for x in existing if duplicate(x)]
 existing = [x for x in existing if not duplicate(x)]
 back = sorted(x for x in priced if x in text_ids and x not in existing and x not in mapped_to
@@ -73,7 +75,7 @@ back = sorted(x for x in priced if x in text_ids and x not in existing and x not
 
 print(f"\nOpenRouter channel #{chan['id']} has {len(existing) + len(aliases)} models now.")
 if aliases:
-    print(f"Duplicate models to take off (\"~\" aliases, :batch and similar): {len(aliases)}")
+    print(f"Duplicate models to take off (\"~\" aliases, :batch and similar, DeepSeek): {len(aliases)}")
     for x in aliases:
         print("  " + x)
 print(f"Priced OpenRouter models to put back: {len(back)}")
