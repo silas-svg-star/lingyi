@@ -238,7 +238,12 @@ func InitLogDB() (err error) {
 		common.SetLogDatabaseType(common.MainDatabaseType())
 		initCol()
 		if common.IsMasterNode {
-			return MigrateAuditLogs()
+			if err := MigrateAuditLogs(); err != nil {
+				return err
+			}
+			// Conversation logs share the main database when no separate log
+			// database is configured, so their table is created here too.
+			return LOG_DB.AutoMigrate(&ConversationLog{})
 		}
 		return
 	}

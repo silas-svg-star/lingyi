@@ -36,6 +36,7 @@ import { Route as SetupIndexRouteImport } from './routes/setup/index'
 import { Route as authUserResetRouteImport } from './routes/(auth)/user/reset'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels/index'
 import { Route as AuthenticatedChatChatIdRouteImport } from './routes/_authenticated/chat/$chatId'
+import { Route as AuthenticatedCompareIndexRouteImport } from './routes/_authenticated/compare/index'
 import { Route as AuthenticatedConversationLogsIndexRouteImport } from './routes/_authenticated/conversation-logs/index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedDashboardSectionRouteImport } from './routes/_authenticated/dashboard/$section'
@@ -209,6 +210,12 @@ const AuthenticatedChatChatIdRoute = AuthenticatedChatChatIdRouteImport.update({
   path: '/chat/$chatId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCompareIndexRoute =
+  AuthenticatedCompareIndexRouteImport.update({
+    id: '/compare/',
+    path: '/compare/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedConversationLogsIndexRoute =
   AuthenticatedConversationLogsIndexRouteImport.update({
     id: '/conversation-logs/',
@@ -460,6 +467,7 @@ export interface FileRoutesByFullPath {
   '/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/usage-logs/audit': typeof AuthenticatedUsageLogsAuditRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
+  '/compare/': typeof AuthenticatedCompareIndexRoute
   '/conversation-logs/': typeof AuthenticatedConversationLogsIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/keys/': typeof AuthenticatedKeysIndexRoute
@@ -523,6 +531,7 @@ export interface FileRoutesByTo {
   '/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/usage-logs/audit': typeof AuthenticatedUsageLogsAuditRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
+  '/compare': typeof AuthenticatedCompareIndexRoute
   '/conversation-logs': typeof AuthenticatedConversationLogsIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/keys': typeof AuthenticatedKeysIndexRoute
@@ -590,6 +599,7 @@ export interface FileRoutesById {
   '/_authenticated/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/_authenticated/usage-logs/audit': typeof AuthenticatedUsageLogsAuditRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
+  '/_authenticated/compare/': typeof AuthenticatedCompareIndexRoute
   '/_authenticated/conversation-logs/': typeof AuthenticatedConversationLogsIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/keys/': typeof AuthenticatedKeysIndexRoute
@@ -656,6 +666,7 @@ export interface FileRouteTypes {
     | '/usage-logs/$section'
     | '/usage-logs/audit'
     | '/channels/'
+    | '/compare/'
     | '/conversation-logs/'
     | '/dashboard/'
     | '/keys/'
@@ -719,6 +730,7 @@ export interface FileRouteTypes {
     | '/usage-logs/$section'
     | '/usage-logs/audit'
     | '/channels'
+    | '/compare'
     | '/conversation-logs'
     | '/dashboard'
     | '/keys'
@@ -785,6 +797,7 @@ export interface FileRouteTypes {
     | '/_authenticated/usage-logs/$section'
     | '/_authenticated/usage-logs/audit'
     | '/_authenticated/channels/'
+    | '/_authenticated/compare/'
     | '/_authenticated/conversation-logs/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/keys/'
@@ -1027,6 +1040,13 @@ declare module '@tanstack/react-router' {
       path: '/chat/$chatId'
       fullPath: '/chat/$chatId'
       preLoaderRoute: typeof AuthenticatedChatChatIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/compare/': {
+      id: '/_authenticated/compare/'
+      path: '/compare'
+      fullPath: '/compare/'
+      preLoaderRoute: typeof AuthenticatedCompareIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/conversation-logs/': {
@@ -1390,6 +1410,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsageLogsSectionRoute: typeof AuthenticatedUsageLogsSectionRoute
   AuthenticatedUsageLogsAuditRoute: typeof AuthenticatedUsageLogsAuditRoute
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
+  AuthenticatedCompareIndexRoute: typeof AuthenticatedCompareIndexRoute
   AuthenticatedConversationLogsIndexRoute: typeof AuthenticatedConversationLogsIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedKeysIndexRoute: typeof AuthenticatedKeysIndexRoute
@@ -1417,6 +1438,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsageLogsSectionRoute: AuthenticatedUsageLogsSectionRoute,
   AuthenticatedUsageLogsAuditRoute: AuthenticatedUsageLogsAuditRoute,
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
+  AuthenticatedCompareIndexRoute: AuthenticatedCompareIndexRoute,
   AuthenticatedConversationLogsIndexRoute:
     AuthenticatedConversationLogsIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,

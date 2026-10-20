@@ -7336,6 +7336,15 @@
     "One key for mainstream AI models": "One key for mainstream AI models",
     "Singapore node, stable and fast": "Singapore node, stable and fast",
     "Pay as you go, transparent billing": "Pay as you go, transparent billing",
-    "Works with Cherry Studio and other OpenAI-compatible tools": "Works with Cherry Studio and other OpenAI-compatible tools"
+    "Works with Cherry Studio and other OpenAI-compatible tools": "Works with Cherry Studio and other OpenAI-compatible tools",
+    "Model Compare": "Model Compare",
+    "Pick up to {{count}} models": "Pick up to {{count}} models",
+    "Type a question, or pick a sample below": "Type a question, or pick a sample below",
+    "Start compare": "Start compare",
+    "Each model is billed at its normal price.": "Each model is billed at its normal price.",
+    "A bat and a ball cost 1.10 in total. The bat costs 1.00 more than the ball. How much does the ball cost? Explain briefly.": "A bat and a ball cost 1.10 in total. The bat costs 1.00 more than the ball. How much does the ball cost? Explain briefly.",
+    "If all bloops are razzies and all razzies are lazzies, are all bloops definitely lazzies? Explain briefly.": "If all bloops are razzies and all razzies are lazzies, are all bloops definitely lazzies? Explain briefly.",
+    "Which is larger, 9.11 or 9.9? Explain briefly.": "Which is larger, 9.11 or 9.9? Explain briefly.",
+    "A farmer has 17 sheep. All but 9 run away. How many sheep are left?": "A farmer has 17 sheep. All but 9 run away. How many sheep are left?"
   }
 }
