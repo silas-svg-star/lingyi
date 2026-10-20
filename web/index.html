@@ -19,9 +19,9 @@
          Keep in sync with ThemeProvider and THEME_STORAGE_KEYS.mode. -->
     <script>
       ;(function () {
-        var theme = 'dark'
+        var theme = 'light'
         try {
-          theme = localStorage.getItem('newapi:theme:v1:mode') || 'dark'
+          theme = localStorage.getItem('newapi:theme:v1:mode') || 'light'
         } catch (e) {}
         if (theme !== 'dark' && theme !== 'light') {
           theme = window.matchMedia('(prefers-color-scheme: dark)').matches
