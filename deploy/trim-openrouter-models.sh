@@ -56,8 +56,8 @@ for x in drop:
     print("    " + x)
 if not drop:
     sys.exit("NOTHING TO REMOVE")
-if not keep:
-    sys.exit("WOULD REMOVE EVERYTHING, stopping, nothing changed")
+if len(keep) < len(drop):
+    sys.exit("WOULD REMOVE MOST OF THE CHANNEL, stopping, nothing changed")
 print(f"\nRemove these {len(drop)} names from the OpenRouter channel? Prices are not touched. (y/n): ", end="", flush=True)
 answer = os.environ.get("CONFIRM") or open("/dev/tty").readline()
 if answer.strip().lower() != "y":
