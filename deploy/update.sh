@@ -5,4 +5,4 @@ cd "$(dirname "$0")"
 rm -f new-api
 gunzip -k new-api-linux.gz && mv new-api-linux new-api
 docker compose up -d --build
-echo ">> 已更新，几十秒后刷新网页"
+echo ">> UPDATED"
