@@ -7331,6 +7331,11 @@
     "preset.sakura": "樱花",
     "preset.crimson": "朱砂",
     "preset.aurora": "极光",
-    "preset.ink": "水墨"
+    "preset.ink": "水墨",
+    "One API, all mainstream models": "一个接口，畅用主流大模型",
+    "One key for mainstream AI models": "一个令牌，接入 DeepSeek 等主流模型",
+    "Singapore node, stable and fast": "新加坡节点，稳定快速",
+    "Pay as you go, transparent billing": "按量计费，每笔消费都看得到",
+    "Works with Cherry Studio and other OpenAI-compatible tools": "Cherry Studio 等工具填上地址就能用"
   }
 }

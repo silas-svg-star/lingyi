@@ -345,3 +345,35 @@ func assertUserAuthVersion(t *testing.T, userID int, expected int64) {
 	require.NoError(t, DB.Model(&User{}).Where("id = ?", userID).Select("auth_version").Scan(&version).Error)
 	assert.Equal(t, expected, version)
 }
+
+func TestValidateAndFillMatchesUsernameCaseInsensitively(t *testing.T) {
+	truncateTables(t)
+
+	hash, err := common.Password2Hash("password123")
+	require.NoError(t, err)
+	require.NoError(t, DB.Create(&User{Username: "Silas", Password: hash, Status: common.UserStatusEnabled}).Error)
+
+	login := User{Username: "silas", Password: "password123"}
+	require.NoError(t, login.ValidateAndFill())
+	assert.Equal(t, "Silas", login.Username)
+
+	exists, err := CheckUserExistOrDeleted("SILAS", "")
+	require.NoError(t, err)
+	assert.True(t, exists)
+}
+
+func TestValidateAndFillRejectsAmbiguousCaseInsensitiveUsername(t *testing.T) {
+	truncateTables(t)
+
+	hash, err := common.Password2Hash("password123")
+	require.NoError(t, err)
+	require.NoError(t, DB.Create(&User{Username: "Amy", Password: hash, Status: common.UserStatusEnabled, AffCode: "aff1"}).Error)
+	require.NoError(t, DB.Create(&User{Username: "AMY", Password: hash, Status: common.UserStatusEnabled, AffCode: "aff2"}).Error)
+
+	exact := User{Username: "AMY", Password: "password123"}
+	require.NoError(t, exact.ValidateAndFill())
+	assert.Equal(t, "AMY", exact.Username)
+
+	ambiguous := User{Username: "amy", Password: "password123"}
+	assert.ErrorIs(t, ambiguous.ValidateAndFill(), ErrInvalidCredentials)
+}

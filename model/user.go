@@ -292,9 +292,9 @@ func CheckUserExistOrDeleted(username string, email string) (bool, error) {
 	var err error
 	email = NormalizeEmail(email)
 	if email == "" {
-		err = DB.Unscoped().First(&user, "username = ?", username).Error
+		err = DB.Unscoped().First(&user, "LOWER(username) = LOWER(?)", username).Error
 	} else {
-		err = DB.Unscoped().First(&user, "username = ? or LOWER(email) = ?", username, email).Error
+		err = DB.Unscoped().First(&user, "LOWER(username) = LOWER(?) or LOWER(email) = ?", username, email).Error
 	}
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -1066,6 +1066,18 @@ func (user *User) ValidateAndFill() (err error) {
 	}
 	// find by username or email
 	err = DB.Where("username = ? OR email = ?", username, username).First(user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// Fall back to a case-insensitive username match, but only when it is
+		// unambiguous (accounts created before this check may differ by case).
+		var matches []User
+		err = DB.Where("LOWER(username) = LOWER(?)", username).Limit(2).Find(&matches).Error
+		if err == nil {
+			if len(matches) != 1 {
+				return ErrInvalidCredentials
+			}
+			*user = matches[0]
+		}
+	}
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrInvalidCredentials

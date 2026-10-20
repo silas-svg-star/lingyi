@@ -7331,6 +7331,11 @@
     "preset.sakura": "Sakura",
     "preset.crimson": "Crimson",
     "preset.aurora": "Aurora",
-    "preset.ink": "Ink"
+    "preset.ink": "Ink",
+    "One API, all mainstream models": "One API, all mainstream models",
+    "One key for mainstream AI models": "One key for mainstream AI models",
+    "Singapore node, stable and fast": "Singapore node, stable and fast",
+    "Pay as you go, transparent billing": "Pay as you go, transparent billing",
+    "Works with Cherry Studio and other OpenAI-compatible tools": "Works with Cherry Studio and other OpenAI-compatible tools"
   }
 }
