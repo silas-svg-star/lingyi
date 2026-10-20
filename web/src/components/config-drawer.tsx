@@ -40,6 +40,11 @@ import {
 } from '@/components/drawer-layout'
 import { Button } from '@/components/ui/button'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -126,6 +131,31 @@ export function ConfigDrawer() {
         </SheetFooter>
       </SheetContent>
     </Sheet>
+  )
+}
+
+// Color preset picker for public pages, which have no sidebar or layout
+// context for the full drawer.
+export function PresetPopover() {
+  const { t } = useTranslation()
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-9 w-9'
+            aria-label={t('Color preset')}
+          />
+        }
+      >
+        <Palette className='size-[1.2rem]' aria-hidden='true' />
+      </PopoverTrigger>
+      <PopoverContent align='end' className='w-80 max-w-[calc(100vw-2rem)] p-4'>
+        <PresetConfig />
+      </PopoverContent>
+    </Popover>
   )
 }
 

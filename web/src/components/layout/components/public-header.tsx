@@ -20,6 +20,7 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { PresetPopover } from '@/components/config-drawer'
 import { Dialog } from '@/components/dialog'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { NotificationPopover } from '@/components/notification-popover'
@@ -288,6 +289,7 @@ export function PublicHeader(props: PublicHeaderProps) {
               )}
 
               {showLanguageSwitcher && <LanguageSwitcher />}
+              {showThemeSwitch && <PresetPopover />}
               {showThemeSwitch && <ThemeSwitch />}
               {showNotifications && (
                 <NotificationPopover
@@ -312,6 +314,7 @@ export function PublicHeader(props: PublicHeaderProps) {
 
             {/* Mobile: compact actions + hamburger */}
             <div className='flex shrink-0 items-center gap-2 lg:hidden'>
+              {showThemeSwitch && <PresetPopover />}
               {showThemeSwitch && <ThemeSwitch />}
               {showAuthButtons && !loading && isAuthenticated && (
                 <ProfileDropdown />
