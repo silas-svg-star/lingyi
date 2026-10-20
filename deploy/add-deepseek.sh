@@ -3,7 +3,7 @@
 # 管理员密码和 Key 只在这台服务器的终端里输入，不会显示、不会保存到文件。
 set -e
 SITE="${SITE:-http://127.0.0.1:3000}"
-read -rp "Admin username: " NAME
+NAME=""; while [ -z "$NAME" ]; do read -rp "Admin username: " NAME; done
 read -rsp "Admin password (hidden): " PASS; echo
 read -rsp "New DeepSeek API key (hidden): " KEY; echo
 export NAME PASS KEY SITE

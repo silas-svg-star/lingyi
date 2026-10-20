@@ -4,7 +4,7 @@
 set -e
 cd "$(dirname "$0")"
 SITE="${SITE:-http://127.0.0.1:3000}"
-read -rp "Admin username: " NAME
+NAME=""; while [ -z "$NAME" ]; do read -rp "Admin username: " NAME; done
 read -rsp "Admin password (hidden): " PASS; echo
 export NAME PASS SITE
 python3 - <<'PY'
