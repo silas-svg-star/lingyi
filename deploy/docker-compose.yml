@@ -1,0 +1,33 @@
+services:
+  lingyi:
+    build: .
+    image: lingyi:latest
+    container_name: lingyi
+    restart: always
+    command: --log-dir /app/logs
+    ports:
+      - "127.0.0.1:3000:3000"   # 只对本机开放，由 Caddy 对外提供 HTTPS
+    volumes:
+      - ./data:/data            # 数据库 one-api.db 在这里
+      - ./logs:/app/logs
+    environment:
+      - TZ=Asia/Shanghai
+      - REDIS_CONN_STRING=redis://redis
+      - SESSION_SECRET=${SESSION_SECRET}
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: lingyi-redis
+    restart: always
+
+  caddy:
+    image: caddy:2
+    container_name: lingyi-caddy
+    restart: always
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy_data:/data
+      - ./buy:/srv/buy:ro        # 购买额度页面 https://域名/buy/

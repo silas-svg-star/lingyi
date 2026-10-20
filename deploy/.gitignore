@@ -1,0 +1,7 @@
+.env
+new-api
+Caddyfile
+data/
+logs/
+caddy_data/
+*.db
