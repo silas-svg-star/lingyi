@@ -38,14 +38,20 @@ chans = [c for c in items if c.get("name") == "OpenRouter"]
 if not chans:
     sys.exit("NO OPENROUTER CHANNEL")
 chan = max(chans, key=lambda c: c["id"])
+chan = call("GET", f"/api/channel/{chan['id']}")["data"]
 existing = [x.strip() for x in (chan.get("models") or "").split(",") if x.strip()]
+try:
+    mapped_to = set((json.loads(chan.get("model_mapping") or "{}") or {}).values())
+except ValueError:
+    mapped_to = set()
 
 opts = {o["key"]: o["value"] for o in call("GET", "/api/option/")["data"]}
 priced = set(json.loads(opts.get("ModelRatio") or "{}")) | set(json.loads(opts.get("ModelPrice") or "{}"))
 # "~vendor/model-latest" names are OpenRouter aliases that duplicate a real model; leave them out.
 aliases = [x for x in existing if x.startswith("~")]
 existing = [x for x in existing if not x.startswith("~")]
-back = sorted(x for x in priced if x in text_ids and x not in existing and not x.startswith("~"))
+back = sorted(x for x in priced if x in text_ids and x not in existing and x not in mapped_to
+              and not x.startswith("~"))
 
 print(f"\nOpenRouter channel #{chan['id']} has {len(existing) + len(aliases)} models now.")
 if aliases:
