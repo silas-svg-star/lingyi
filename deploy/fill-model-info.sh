@@ -76,11 +76,14 @@ def find_vendor(vname):
             return v["id"]
     return None
 
-have, page = set(), 1
+have, rows, page = set(), {}, 1
 while True:
     d = call("GET", f"/api/models/?p={page}&page_size=100")["data"]
     items = d.get("items") or []
-    have.update(m["model_name"] for m in items if m.get("id"))
+    for m in items:
+        if m.get("id"):
+            have.add(m["model_name"])
+            rows[m["model_name"]] = m
     if len(items) < 100:
         break
     page += 1
@@ -94,14 +97,16 @@ while True:
         break
     page += 1
 
-todo = sorted(n for n in names if n not in have)
-print(f"\n{len(names)} models on channels, {len(todo)} without info.")
+todo = sorted(n for n in names if n not in have or not rows[n].get("vendor_id"))
+print(f"\n{len(names)} models on channels, {len(todo)} without info or vendor.")
 if not todo:
     sys.exit("NOTHING TO FILL")
 plan = []
 for n in todo:
     p = prefix_of(n)
     vname, icon = VENDORS.get(p, (None, None)) if p else (None, None)
+    if not vname and ":" in (info.get(n, {}).get("name") or ""):
+        vname = info[n]["name"].split(":")[0].strip()  # OpenRouter names look like "Reka: Reka Edge"
     desc = (info.get(n, {}).get("description") or "").strip().replace("\n", " ")
     if len(desc) > 300:
         desc = desc[:297] + "..."
@@ -128,10 +133,19 @@ for n, vname, icon, desc in plan:
                 vid = res["data"]["id"]
             else:
                 vid = 0
-    body = {"model_name": n, "vendor_id": vid, "description": desc, "status": 1,
-            "sync_official": 0, "name_rule": 0}
+    if n in rows:
+        if not vid:
+            continue
+        body = dict(rows[n], vendor_id=vid)
+        if not body.get("description"):
+            body["description"] = desc
+        method = "PUT"
+    else:
+        body = {"model_name": n, "vendor_id": vid, "description": desc, "status": 1,
+                "sync_official": 0, "name_rule": 0}
+        method = "POST"
     try:
-        res = call("POST", "/api/models/", body)
+        res = call(method, "/api/models/", body)
     except urllib.error.HTTPError as e:
         res = {"success": False, "message": str(e)}
     if res.get("success"):
