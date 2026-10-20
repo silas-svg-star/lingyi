@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# 给渠道里所有还没定价的 OpenRouter 模型，按 OpenRouter 官方价格一次性定价：
+# 给渠道里所有还没定价的模型一次性定价：先查 OpenRouter 官方价格，查不到的
+# （比如 MiniMax、通义等官方渠道的模型）再查 models.dev 上的官方价格。
 #   cd ~/lingyi && git pull && sudo bash deploy/price-openrouter-all.sh
 # 已经设过价格的模型不改；免费模型和画图等非文字模型会跳过（列出来告诉你）。
 set -e
@@ -33,6 +34,24 @@ else:
         catalog = json.load(r)["data"]
 by_id = {m["id"]: m for m in catalog}
 
+# models.dev lists official prices (USD per 1M tokens) for each provider's own
+# model names, which covers channels that do not go through OpenRouter.
+dev = {}
+try:
+    if os.environ.get("MODELS_DEV_FILE"):
+        dev_raw = json.load(open(os.environ["MODELS_DEV_FILE"]))
+    else:
+        with urllib.request.urlopen("https://models.dev/api.json", timeout=60) as r:
+            dev_raw = json.load(r)
+    for prov in dev_raw.values():
+        for mid, m in (prov.get("models") or {}).items():
+            cost = m.get("cost") or {}
+            outs = (m.get("modalities") or {}).get("output") or ["text"]
+            if cost.get("input") and cost.get("output") and outs == ["text"]:
+                dev.setdefault(mid.lower(), (float(cost["input"]), float(cost["output"]), float(cost.get("cache_read") or 0)))
+except Exception as e:
+    print("models.dev not available, only OpenRouter prices will be used:", e)
+
 def price(m, field):
     try:
         return float(m.get("pricing", {}).get(field) or 0) * 1e6  # USD per 1M tokens
@@ -62,7 +81,15 @@ for name in sorted(names):
         continue
     m = by_id.get(name)
     if m is None:
-        if "/" in name:  # names without a provider prefix are other channels' models
+        hit = dev.get(name.lower()) or dev.get(name.split("/")[-1].lower())
+        if hit:
+            pin, pout, pcache = hit
+            model_ratio[name] = round(pin / 2, 6)
+            completion_ratio[name] = round(pout / pin, 6)
+            if pcache > 0:
+                cache_ratio[name] = round(pcache / pin, 6)
+            added.append((name, pin, pout))
+        else:
             unknown.append(name)
         continue
     if m.get("architecture", {}).get("output_modalities", ["text"]) != ["text"]:
@@ -79,7 +106,7 @@ for name in sorted(names):
     added.append((name, pin, pout))
 
 for label, rows in (("Free models (skipped)", free), ("Image/audio models (skipped)", non_text),
-                    ("Not on OpenRouter (skipped)", unknown)):
+                    ("No public price found, set these by hand (skipped)", unknown)):
     if rows:
         print(f"\n{label}: {len(rows)}")
         for r in rows:
