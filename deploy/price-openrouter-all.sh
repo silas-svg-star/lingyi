@@ -5,8 +5,8 @@
 # 已经设过价格的模型不改；免费模型和画图等非文字模型会跳过（列出来告诉你）。
 set -e
 SITE="${SITE:-http://127.0.0.1:3000}"
-NAME=""; while [ -z "$NAME" ]; do read -rp "Admin username: " NAME; done
-read -rsp "Admin password (hidden): " PASS; echo
+NAME="${LINGYI_ADMIN:-}"; while [ -z "$NAME" ]; do read -rp "Admin username: " NAME; done
+PASS="${LINGYI_PASS:-}"; if [ -z "$PASS" ]; then read -rsp "Admin password (hidden): " PASS; echo; fi
 export NAME PASS SITE
 python3 - <<'PY'
 import json, os, sys, urllib.request, http.cookiejar
