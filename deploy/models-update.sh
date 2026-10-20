@@ -9,7 +9,7 @@ read -rsp "Admin password (hidden): " LINGYI_PASS; echo
 export LINGYI_ADMIN LINGYI_PASS CONFIRM=y
 echo; echo "== 1/3 Pricing models that have no price =="
 bash price-openrouter-all.sh || true
-echo; echo "== 2/3 Putting priced OpenRouter models back on the channel =="
+echo; echo "== 2/3 Checking the OpenRouter channel (put back missing models, drop \"~\" aliases) =="
 bash restore-openrouter-models.sh || true
 echo; echo "== 3/3 Filling vendor, icon and description =="
 bash fill-model-info.sh || true

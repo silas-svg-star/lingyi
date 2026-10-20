@@ -42,22 +42,39 @@ existing = [x.strip() for x in (chan.get("models") or "").split(",") if x.strip(
 
 opts = {o["key"]: o["value"] for o in call("GET", "/api/option/")["data"]}
 priced = set(json.loads(opts.get("ModelRatio") or "{}")) | set(json.loads(opts.get("ModelPrice") or "{}"))
-back = sorted(x for x in priced if x in text_ids and x not in existing)
+# "~vendor/model-latest" names are OpenRouter aliases that duplicate a real model; leave them out.
+aliases = [x for x in existing if x.startswith("~")]
+existing = [x for x in existing if not x.startswith("~")]
+back = sorted(x for x in priced if x in text_ids and x not in existing and not x.startswith("~"))
 
-print(f"\nOpenRouter channel #{chan['id']} has {len(existing)} models now.")
+print(f"\nOpenRouter channel #{chan['id']} has {len(existing) + len(aliases)} models now.")
+if aliases:
+    print(f"\"~\" alias models to take off: {len(aliases)}")
+    for x in aliases:
+        print("  " + x)
 print(f"Priced OpenRouter models to put back: {len(back)}")
 for x in back:
     print("  " + x)
-if not back:
+if not back and not aliases:
     sys.exit("NOTHING TO RESTORE")
-print(f"\nPut these {len(back)} models back? (y/n): ", end="", flush=True)
+print(f"\nApply these changes? (y/n): ", end="", flush=True)
 answer = os.environ.get("CONFIRM") or open("/dev/tty").readline()
 if answer.strip().lower() != "y":
     sys.exit("CANCELLED, nothing changed")
 res = call("PUT", "/api/channel/", {"id": chan["id"], "type": chan["type"], "models": ",".join(existing + back)})
 if not res.get("success"):
     sys.exit("UPDATE CHANNEL FAILED: " + str(res.get("message")))
-test = call("GET", f"/api/channel/test/{chan['id']}?model={back[0]}")
+# Drop the info cards of the "~" aliases too, so they leave the model list.
+ids, page = [], 1
+while True:
+    items = call("GET", f"/api/models/?p={page}&page_size=100")["data"].get("items") or []
+    ids += [m["id"] for m in items if m.get("id") and m["model_name"] in aliases]
+    if len(items) < 100:
+        break
+    page += 1
+if ids:
+    call("POST", "/api/models/delete", {"model_ids": ids, "remove_from_channels": False, "remove_pricing": False})
+test = call("GET", f"/api/channel/test/{chan['id']}?model={(back or existing)[0]}")
 print(f"DONE. OpenRouter channel now has {len(existing) + len(back)} models. " +
       ("TEST OK" if test.get("success") else "TEST FAILED: " + str(test.get("message"))))
 PY
