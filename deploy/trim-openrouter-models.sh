@@ -25,6 +25,20 @@ login = call("POST", "/api/user/login", {"username": os.environ["NAME"], "passwo
 if not login.get("success"):
     sys.exit("LOGIN FAILED: " + str(login.get("message")))
 token = login["data"]["access_token"]
+import atexit
+def _logout():
+    # Each script login is a session (the site allows 50); close leftovers from earlier runs and this one.
+    try:
+        for sess in call("GET", "/api/user/sessions").get("data") or []:
+            if not sess.get("current") and (sess.get("user_agent") or "").startswith("Python-urllib"):
+                call("DELETE", f"/api/user/sessions/{sess['sid']}")
+    except Exception:
+        pass
+    try:
+        call("POST", "/api/user/auth/logout")
+    except Exception:
+        pass
+atexit.register(_logout)
 
 if os.environ.get("OR_MODELS_FILE"):
     catalog = json.load(open(os.environ["OR_MODELS_FILE"]))["data"]

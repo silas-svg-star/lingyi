@@ -24,6 +24,20 @@ login = call("POST", "/api/user/login", {"username": os.environ["NAME"], "passwo
 if not login.get("success"):
     sys.exit("LOGIN FAILED: " + str(login.get("message")))
 token = login["data"]["access_token"]
+import atexit
+def _logout():
+    # Each script login is a session (the site allows 50); close leftovers from earlier runs and this one.
+    try:
+        for sess in call("GET", "/api/user/sessions").get("data") or []:
+            if not sess.get("current") and (sess.get("user_agent") or "").startswith("Python-urllib"):
+                call("DELETE", f"/api/user/sessions/{sess['sid']}")
+    except Exception:
+        pass
+    try:
+        call("POST", "/api/user/auth/logout")
+    except Exception:
+        pass
+atexit.register(_logout)
 
 if os.environ.get("OR_MODELS_FILE"):
     catalog = json.load(open(os.environ["OR_MODELS_FILE"]))["data"]
@@ -41,21 +55,25 @@ chan = max(chans, key=lambda c: c["id"])
 chan = call("GET", f"/api/channel/{chan['id']}")["data"]
 existing = [x.strip() for x in (chan.get("models") or "").split(",") if x.strip()]
 try:
-    mapped_to = set((json.loads(chan.get("model_mapping") or "{}") or {}).values())
+    mapping = json.loads(chan.get("model_mapping") or "{}") or {}
 except ValueError:
-    mapped_to = set()
+    mapping = {}
+mapped_to = set(mapping.values())
 
 opts = {o["key"]: o["value"] for o in call("GET", "/api/option/")["data"]}
 priced = set(json.loads(opts.get("ModelRatio") or "{}")) | set(json.loads(opts.get("ModelPrice") or "{}"))
-# "~vendor/model-latest" names are OpenRouter aliases that duplicate a real model; leave them out.
-aliases = [x for x in existing if x.startswith("~")]
-existing = [x for x in existing if not x.startswith("~")]
+# Leave out duplicates of a real model: "~vendor/model-latest" aliases and
+# variants such as "model:batch", ":free", ":thinking", ":extended".
+def duplicate(x):
+    return x.startswith("~") or ":" in x
+aliases = [x for x in existing if duplicate(x)]
+existing = [x for x in existing if not duplicate(x)]
 back = sorted(x for x in priced if x in text_ids and x not in existing and x not in mapped_to
-              and not x.startswith("~"))
+              and not duplicate(x))
 
 print(f"\nOpenRouter channel #{chan['id']} has {len(existing) + len(aliases)} models now.")
 if aliases:
-    print(f"\"~\" alias models to take off: {len(aliases)}")
+    print(f"Duplicate models to take off (\"~\" aliases, :batch and similar): {len(aliases)}")
     for x in aliases:
         print("  " + x)
 print(f"Priced OpenRouter models to put back: {len(back)}")
@@ -67,10 +85,13 @@ print(f"\nApply these changes? (y/n): ", end="", flush=True)
 answer = os.environ.get("CONFIRM") or open("/dev/tty").readline()
 if answer.strip().lower() != "y":
     sys.exit("CANCELLED, nothing changed")
-res = call("PUT", "/api/channel/", {"id": chan["id"], "type": chan["type"], "models": ",".join(existing + back)})
+for x in aliases:
+    mapping.pop(x, None)
+res = call("PUT", "/api/channel/", {"id": chan["id"], "type": chan["type"], "models": ",".join(existing + back),
+                                    "model_mapping": json.dumps(mapping)})
 if not res.get("success"):
     sys.exit("UPDATE CHANNEL FAILED: " + str(res.get("message")))
-# Drop the info cards of the "~" aliases too, so they leave the model list.
+# Drop the info cards of those duplicates too, so they leave the model list.
 ids, page = [], 1
 while True:
     items = call("GET", f"/api/models/?p={page}&page_size=100")["data"].get("items") or []

@@ -62,5 +62,9 @@ if not login.get("success"):
 res = call("PUT", "/api/option/", {"key": "ServerAddress", "value": "https://" + os.environ["DOMAIN"]},
            login["data"]["access_token"])
 print("SITE ADDRESS " + ("UPDATED" if res.get("success") else "FAILED: " + str(res.get("message"))))
+try:
+    call("POST", "/api/user/auth/logout", None, login["data"]["access_token"])  # free the login session again
+except Exception:
+    pass
 PY
 fi
