@@ -7324,6 +7324,13 @@
     "Off by default. When on, prompts and replies are stored, visible to admins only, and deleted after 7 days. The sign-in and sign-up pages show a notice while it is on.": "默认关闭。开启后会保存提问与回复，仅管理员可见，7 天后自动删除；开启期间登录和注册页会显示告知。",
     "Search conversation content": "搜索对话内容",
     "No conversations saved": "暂无对话记录",
-    "To investigate problems and prevent abuse, this site stores conversation content for {{days}} days.": "为排查问题和防止滥用，本站会保存对话内容 {{days}} 天。"
+    "To investigate problems and prevent abuse, this site stores conversation content for {{days}} days.": "为排查问题和防止滥用，本站会保存对话内容 {{days}} 天。",
+    "preset.cyber": "Cyber",
+    "preset.jade": "灵驿青",
+    "preset.gold": "鎏金",
+    "preset.sakura": "樱花",
+    "preset.crimson": "朱砂",
+    "preset.aurora": "极光",
+    "preset.ink": "水墨"
   }
 }

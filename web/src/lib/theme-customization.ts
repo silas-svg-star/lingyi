@@ -83,6 +83,37 @@ export const THEME_PRESETS = [
     name: 'Lavender Dream',
     swatches: ['oklch(0.5709 0.1808 306.89)', 'oklch(0.811 0.0589 201.14)'],
   },
+  // 灵驿新增配色
+  {
+    value: 'jade',
+    name: 'Jade',
+    swatches: ['oklch(0.58 0.11 190)', 'oklch(0.78 0.08 165)'],
+  },
+  {
+    value: 'gold',
+    name: 'Gilded',
+    swatches: ['oklch(0.62 0.13 75)', 'oklch(0.8 0.1 90)'],
+  },
+  {
+    value: 'sakura',
+    name: 'Sakura',
+    swatches: ['oklch(0.66 0.16 355)', 'oklch(0.86 0.07 340)'],
+  },
+  {
+    value: 'crimson',
+    name: 'Crimson',
+    swatches: ['oklch(0.55 0.2 28)', 'oklch(0.75 0.12 45)'],
+  },
+  {
+    value: 'aurora',
+    name: 'Aurora',
+    swatches: ['oklch(0.6 0.15 160)', 'oklch(0.58 0.17 300)'],
+  },
+  {
+    value: 'ink',
+    name: 'Ink',
+    swatches: ['oklch(0.3 0.01 250)', 'oklch(0.55 0.02 250)'],
+  },
 ] as const
 
 export type ThemePreset = (typeof THEME_PRESETS)[number]['value']

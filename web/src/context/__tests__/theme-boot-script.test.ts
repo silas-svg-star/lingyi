@@ -76,12 +76,12 @@ describe('index.html theme boot script', () => {
     expect(document.documentElement).not.toHaveClass('dark')
   })
 
-  it('follows the system dark mode when no preference is saved', () => {
+  it('starts in light mode when no preference is saved', () => {
     mockSystemDarkMode(true)
 
     runBootScript()
 
-    expect(document.documentElement).toHaveClass('dark')
+    expect(document.documentElement).toHaveClass('light')
   })
 
   it('follows the system light mode when the saved value is invalid', () => {

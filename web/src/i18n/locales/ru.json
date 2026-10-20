@@ -7324,6 +7324,13 @@
     "Off by default. When on, prompts and replies are stored, visible to admins only, and deleted after 7 days. The sign-in and sign-up pages show a notice while it is on.": "Off by default. When on, prompts and replies are stored, visible to admins only, and deleted after 7 days. The sign-in and sign-up pages show a notice while it is on.",
     "Search conversation content": "Search conversation content",
     "No conversations saved": "No conversations saved",
-    "To investigate problems and prevent abuse, this site stores conversation content for {{days}} days.": "To investigate problems and prevent abuse, this site stores conversation content for {{days}} days."
+    "To investigate problems and prevent abuse, this site stores conversation content for {{days}} days.": "To investigate problems and prevent abuse, this site stores conversation content for {{days}} days.",
+    "preset.cyber": "Cyber",
+    "preset.jade": "Jade",
+    "preset.gold": "Gilded",
+    "preset.sakura": "Sakura",
+    "preset.crimson": "Crimson",
+    "preset.aurora": "Aurora",
+    "preset.ink": "Ink"
   }
 }

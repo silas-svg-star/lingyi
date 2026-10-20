@@ -7324,6 +7324,13 @@
     "Off by default. When on, prompts and replies are stored, visible to admins only, and deleted after 7 days. The sign-in and sign-up pages show a notice while it is on.": "預設關閉。開啟後會保存提問與回覆，僅管理員可見，7 天後自動刪除；開啟期間登入和註冊頁會顯示告知。",
     "Search conversation content": "搜尋對話內容",
     "No conversations saved": "暫無對話記錄",
-    "To investigate problems and prevent abuse, this site stores conversation content for {{days}} days.": "為排查問題和防止濫用，本站會保存對話內容 {{days}} 天。"
+    "To investigate problems and prevent abuse, this site stores conversation content for {{days}} days.": "為排查問題和防止濫用，本站會保存對話內容 {{days}} 天。",
+    "preset.cyber": "Cyber",
+    "preset.jade": "靈驛青",
+    "preset.gold": "鎏金",
+    "preset.sakura": "櫻花",
+    "preset.crimson": "硃砂",
+    "preset.aurora": "極光",
+    "preset.ink": "水墨"
   }
 }
